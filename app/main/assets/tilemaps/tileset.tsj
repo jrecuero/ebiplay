@@ -1,0 +1,24 @@
+{ "columns":22,
+ "image":"..\/..\/..\/..\/..\/..\/..\/..\/..\/Downloads\/Ninja Adventure - Asset Pack\/Backgrounds\/Tilesets\/TilesetFloor.png",
+ "imageheight":417,
+ "imagewidth":352,
+ "margin":0,
+ "name":"tileset",
+ "spacing":0,
+ "tilecount":572,
+ "tiledversion":"1.11.2",
+ "tileheight":16,
+ "tiles":[
+        {
+         "id":275,
+         "properties":[
+                {
+                 "name":"terrain",
+                 "type":"string",
+                 "value":"grass"
+                }]
+        }],
+ "tilewidth":16,
+ "type":"tileset",
+ "version":"1.10"
+}
