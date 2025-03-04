@@ -1,17 +1,14 @@
 package engine
 
 import (
-	"log"
-
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 type IActor interface {
 	Draw(*ebiten.Image, *Camera)
 	GetName() string
 	GetPos() (float64, float64)
-	GetSpriteSheet() *ebiten.Image
+	GetSpriteSheet() *SpriteSheet
 	SetPos(float64, float64)
 	Update(...any) error
 }
@@ -20,14 +17,10 @@ type Actor struct {
 	name        string
 	x           float64
 	y           float64
-	spritesheet *ebiten.Image
+	spritesheet *SpriteSheet
 }
 
-func NewActor(name, imagesPath string, x, y float64) *Actor {
-	spritesheet, _, err := ebitenutil.NewImageFromFile(imagesPath)
-	if err != nil {
-		log.Fatalf("can not load actor images file %s: %s", imagesPath, err)
-	}
+func NewActor(name string, spritesheet *SpriteSheet, x, y float64) *Actor {
 	return &Actor{
 		name:        name,
 		spritesheet: spritesheet,
@@ -47,7 +40,7 @@ func (a *Actor) GetPos() (float64, float64) {
 	return a.x, a.y
 }
 
-func (a *Actor) GetSpriteSheet() *ebiten.Image {
+func (a *Actor) GetSpriteSheet() *SpriteSheet {
 	return a.spritesheet
 }
 

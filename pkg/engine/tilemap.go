@@ -75,10 +75,16 @@ func (t *TilemapJSON) Draw(screen *ebiten.Image, camera *Camera) {
 	op := &ebiten.DrawImageOptions{}
 	for _, layer := range t.Layers {
 		for index, data := range layer.Data {
+			// TODO: Update with sprite sheet width and height resolution for
+			// every sprite instead of 16x16.
 			id, _ := DecodeTileID(data, 16, 16, &op.GeoM)
+			// TODO: update with sprite sheet number of vertical and horizontal
+			// tiles instead of 22x22.
 			x := int(id-1) % 22
 			y := int(id-1) / 22
 			tileImage := t.Image.SubImage(image.Rect(x*16, y*16, x*16+16, y*16+16)).(*ebiten.Image)
+			// TODO: Update with sprite sheet width and height resolution for
+			// every sprite instead of 16x16.
 			xScreen := (index % layer.Width) * 16
 			yScreen := (index / layer.Width) * 16
 			op.GeoM.Translate(float64(xScreen), float64(yScreen))
