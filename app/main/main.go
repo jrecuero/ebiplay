@@ -32,14 +32,16 @@ type Game struct {
 	warriorSpriteSheet *engine.SpriteSheet
 	counter            int
 	frame              int
+	menu               *engine.Menu
 }
 
 func (g *Game) Update() error {
 	for _, actor := range g.Actors {
-		actor.Update(tilemapWidthInPixels, tilemapHeightInPixels)
+		//actor.Update(tilemapWidthInPixels, tilemapHeightInPixels)
 		g.Camera.FollowTo(actor.GetPos())
 		g.Camera.Constrain(tilemapWidthInPixels, tilemapHeightInPixels)
 	}
+	g.menu.Update()
 	return nil
 }
 
@@ -48,6 +50,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	for _, actor := range g.Actors {
 		actor.Draw(screen, g.Camera)
 	}
+	g.menu.Draw(screen)
 	//ops := &ebiten.DrawImageOptions{}
 	//ops.GeoM.Scale(0.2, 0.2)
 	//g.counter = (g.counter + 1) % 60
@@ -89,8 +92,7 @@ func main() {
 	imagePath := filepath.Join(wd, "assets/images/TilesetFloor.png")
 	tilemap := engine.NewTilemapJSON(tilemapPath, imagePath)
 
-	//ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
-	ebiten.SetWindowSize(screenWidth*4, screenHeight*4)
+	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
 	ebiten.SetWindowTitle("TileMap Demo")
 
 	knightPath := filepath.Join(wd, "assets/images/Walk.png")
@@ -139,12 +141,19 @@ func main() {
 	tileSpriteSheet := engine.NewTileSpriteSheet(tilemapSpriteSheetPath, 0, 0, 16, 16)
 	fmt.Printf("%#+v\n", tileSpriteSheet)
 
+	var menuitems []*engine.MenuItem = []*engine.MenuItem{
+		engine.NewMenuItem("one"),
+		engine.NewMenuItem("two"),
+		engine.NewMenuItem("three"),
+	}
+
 	g := &Game{
 		Tilemap: tilemap,
 		//Actors:  []engine.IActor{knight},
 		Actors: []engine.IActor{warrior},
 		Camera: engine.NewCamera(0, 0, screenWidth, screenHeight),
 		//warriorSpriteSheet: warriorSpriteSheet,
+		menu: engine.NewSubMenu("menu", 10, 10, 100, 4, menuitems, 0, nil),
 	}
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)

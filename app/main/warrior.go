@@ -18,7 +18,7 @@ type Warrior struct {
 func NewWarrior(name string, spritesheet *engine.SpriteSheet, x, y float64) *Warrior {
 	return &Warrior{
 		Actor: engine.NewActor(name, spritesheet, x, y),
-		scale: 0.1,
+		scale: 0.08,
 		speed: 2.0,
 	}
 }
