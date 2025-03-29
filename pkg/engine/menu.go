@@ -13,7 +13,7 @@ import (
 )
 
 type Menu struct {
-	name          string
+	*Base
 	x, y          float64
 	width, height int
 	menuItems     []*MenuItem
@@ -51,6 +51,7 @@ func NewTopMenu(name string, x, y float64, w, h int, menuItems []*MenuItem, menu
 	// items.
 	totalSelectionLength := numberOfMenuItems * maxItemLength
 	menu := &Menu{
+		Base:          NewBase(name),
 		menuItems:     menuItems,
 		menuLabels:    paddingMenuItems,
 		menuItemIndex: menuItemIndex,
@@ -75,6 +76,7 @@ func NewSubMenu(name string, x, y float64, w, h int, menuItems []*MenuItem, menu
 		menuItemY = menuItemY + 1
 	}
 	menu := &Menu{
+		Base:          NewBase(name),
 		menuItems:     menuItems,
 		menuLabels:    paddingSelections,
 		menuItemIndex: menuItemIndex,

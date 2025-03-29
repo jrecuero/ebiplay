@@ -23,15 +23,15 @@ type TileSpriteSheetJSON struct {
 }
 
 type TileSpriteSheet struct {
-	Path    string
-	Image   *ebiten.Image
-	Rows    int
-	Columns int
-	Width   int
-	Height  int
+	path    string
+	image   *ebiten.Image
+	rows    int
+	columns int
+	width   int
+	height  int
 }
 
-func NewTileSpriteSheet(jsonPath string, rows, columns, width, height int) *TileSpriteSheet {
+func NewTileSpriteSheet(jsonPath string) *TileSpriteSheet {
 	content, err := os.ReadFile(jsonPath)
 	if err != nil {
 		log.Fatalf("can not load tile sprite sheet json file %s: %s", jsonPath, err)
@@ -42,29 +42,37 @@ func NewTileSpriteSheet(jsonPath string, rows, columns, width, height int) *Tile
 	}
 
 	// path to a JSON file that contains all information about the tile set.
-	image, _, err := ebitenutil.NewImageFromFile(tilesetJSON.ImagePath)
+	img, _, err := ebitenutil.NewImageFromFile(tilesetJSON.ImagePath)
 	if err != nil {
 		log.Fatalf("can not load tile sprite sheet image file %s: %s", jsonPath, err)
 	}
 
 	return &TileSpriteSheet{
-		Path:    jsonPath,
-		Image:   image,
-		Rows:    tilesetJSON.ImageHeight / tilesetJSON.TileHeight,
-		Columns: tilesetJSON.Columns,
-		Width:   tilesetJSON.TileWidth,
-		Height:  tilesetJSON.TileHeight,
+		path:    jsonPath,
+		image:   img,
+		rows:    tilesetJSON.ImageHeight / tilesetJSON.TileHeight,
+		columns: tilesetJSON.Columns,
+		width:   tilesetJSON.TileWidth,
+		height:  tilesetJSON.TileHeight,
 	}
 }
 
+func (s *TileSpriteSheet) GetImage() *ebiten.Image {
+	return s.image
+}
+
 func (s *TileSpriteSheet) GetSpriteForID(id int) *ebiten.Image {
-	x := (id - 1) % s.Columns
-	y := (id - 1) / s.Columns
-	return s.Image.SubImage(image.Rect(x*16, y*16, x*16+16, y*16+16)).(*ebiten.Image)
+	x := (id - 1) % s.columns
+	y := (id - 1) / s.columns
+	return s.image.SubImage(image.Rect(x*16, y*16, x*16+16, y*16+16)).(*ebiten.Image)
 }
 
 func (s *TileSpriteSheet) GetSpriteForRowAndCol(row, col int) *ebiten.Image {
-	x := col * s.Width
-	y := row * s.Height
-	return s.Image.SubImage(image.Rect(x, y, x+s.Width, y+s.Height)).(*ebiten.Image)
+	x := col * s.width
+	y := row * s.height
+	return s.image.SubImage(image.Rect(x, y, x+s.width, y+s.height)).(*ebiten.Image)
+}
+
+func (s *TileSpriteSheet) GetTileSize() (int, int) {
+	return s.width, s.height
 }

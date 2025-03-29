@@ -2,13 +2,11 @@ package engine
 
 import (
 	"encoding/json"
-	"image"
 	"log"
 	"math"
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 const (
@@ -67,59 +65,60 @@ type TilemapLayerJSON struct {
 }
 
 type TilemapJSON struct {
-	Layers []TilemapLayerJSON `json:"layers"`
-	Image  *ebiten.Image
+	Layers    []TilemapLayerJSON `json:"layers"`
+	tileSheet *TileSpriteSheet
+}
+
+func NewTilemapJSON(tilemapPath string, tilesheetPath string) *TilemapJSON {
+	content, err := os.ReadFile(tilemapPath)
+	if err != nil {
+		log.Fatalf("can not load tilemap JSON file %s: %s", tilemapPath, err)
+	}
+
+	tilesheet := NewTileSpriteSheet(tilesheetPath)
+	if tilesheet == nil {
+		log.Fatalf("can not load tile sheet sprite file %s: %s", tilesheetPath, err)
+	}
+
+	tilemapJSON := &TilemapJSON{}
+	if err := json.Unmarshal(content, tilemapJSON); err != nil {
+		log.Fatalf("can not unmarshal tilemap JSON file %s: %s", tilemapPath, err)
+	}
+	tilemapJSON.tileSheet = tilesheet
+
+	return tilemapJSON
+}
+
+func (t *TilemapJSON) GetTilemapSize() (int, int) {
+	if len(t.Layers) != 0 {
+		return t.Layers[0].Width, t.Layers[0].Height
+	}
+	return 0, 0
+}
+
+func (t *TilemapJSON) GetTilemapSizeInPixels() (float64, float64) {
+	tileWidth, tileHeight := t.GetTileSize()
+	tilemapWidth, tilemapHeigt := t.GetTilemapSize()
+	return float64(tilemapWidth * tileWidth), float64(tilemapHeigt * tileHeight)
+}
+
+func (t *TilemapJSON) GetTileSize() (int, int) {
+	return t.tileSheet.GetTileSize()
 }
 
 func (t *TilemapJSON) Draw(screen *ebiten.Image, camera *Camera) {
 	op := &ebiten.DrawImageOptions{}
 	for _, layer := range t.Layers {
 		for index, data := range layer.Data {
-			// TODO: Update with sprite sheet width and height resolution for
-			// every sprite instead of 16x16.
-			id, _ := DecodeTileID(data, 16, 16, &op.GeoM)
-			// TODO: update with sprite sheet number of vertical and horizontal
-			// tiles instead of 22x22.
-			x := int(id-1) % 22
-			y := int(id-1) / 22
-			tileImage := t.Image.SubImage(image.Rect(x*16, y*16, x*16+16, y*16+16)).(*ebiten.Image)
-			// TODO: Update with sprite sheet width and height resolution for
-			// every sprite instead of 16x16.
-			xScreen := (index % layer.Width) * 16
-			yScreen := (index / layer.Width) * 16
-			op.GeoM.Translate(float64(xScreen), float64(yScreen))
+			w, h := t.tileSheet.GetTileSize()
+			id, _ := DecodeTileID(data, w, h, &op.GeoM)
+			tileImage := t.tileSheet.GetSpriteForID(int(id))
+			screenX := (index % layer.Width) * w
+			screenY := (index / layer.Width) * h
+			op.GeoM.Translate(float64(screenX), float64(screenY))
 			op.GeoM.Translate(float64(camera.X), float64(camera.Y))
 			screen.DrawImage(tileImage, op)
 			op.GeoM.Reset()
 		}
 	}
-}
-
-func NewTilemapJSON(jsonPath string, imagePath string) *TilemapJSON {
-	content, err := os.ReadFile(jsonPath)
-	if err != nil {
-		log.Fatalf("can not load tilemap JSON file %s: %s", jsonPath, err)
-	}
-
-	img, _, err := ebitenutil.NewImageFromFile(imagePath)
-	if err != nil {
-		log.Fatalf("can not load tilemap IMAGE gile %s: %s", imagePath, err)
-	}
-	tilemapJSON := &TilemapJSON{}
-	if err := json.Unmarshal(content, tilemapJSON); err != nil {
-		log.Fatalf("can not unmarshal tilemap JSON file %s: %s", jsonPath, err)
-	}
-	tilemapJSON.Image = img
-
-	//filtered := []uint32{}
-	//ops := []uint32{}
-	//for _, layer := range tilemapJSON.Layers {
-	//    for _, data := range layer.Data {
-	//        filtered = append(filtered, data&id_TILEMAP_MASK)
-	//        ops = append(ops, (data&flipped_ALL_FLAG)>>28)
-	//    }
-	//}
-	//fmt.Println(filtered)
-	//fmt.Println(ops)
-	return tilemapJSON
 }

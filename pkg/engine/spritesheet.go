@@ -13,12 +13,12 @@ type SpriteSheet struct {
 	Columns      int
 	Width        int
 	Height       int
-	FrameTypes   []string
-	FrameType    string
-	FrameMap     map[string][]int
-	FrameIndex   int
-	FrameSpeed   int
-	FrameCounter int
+	frameTypes   []string
+	frameType    string
+	frameMap     map[string][]int
+	frameIndex   int
+	frameSpeed   int
+	frameCounter int
 }
 
 func NewSpriteSheet(image *ebiten.Image, rows, columns, width, height int) *SpriteSheet {
@@ -31,6 +31,10 @@ func NewSpriteSheet(image *ebiten.Image, rows, columns, width, height int) *Spri
 	}
 }
 
+func NewSpriteSheetImage(image *ebiten.Image, width, height int) *SpriteSheet {
+	return NewSpriteSheet(image, 1, 1, width, height)
+}
+
 func (s *SpriteSheet) GetFrameFor(frameType string) *ebiten.Image {
 	if !s.IsValidFrameType(frameType) {
 		log.Fatalf("invalid frame type %s", frameType)
@@ -38,13 +42,17 @@ func (s *SpriteSheet) GetFrameFor(frameType string) *ebiten.Image {
 	// Update the frame type if it is a different one and reset all counters
 	// and indexes.
 	s.UpdateFrameType(frameType)
-	framemap := s.FrameMap[frameType]
-	if s.FrameCounter = (s.FrameCounter + 1) % s.FrameSpeed; s.FrameCounter == 0 {
-		s.FrameIndex = (s.FrameIndex + 1) % 4
+	framemap := s.frameMap[frameType]
+	if s.frameCounter = (s.frameCounter + 1) % s.frameSpeed; s.frameCounter == 0 {
+		s.frameIndex = (s.frameIndex + 1) % 4
 	}
-	i := s.FrameIndex * 2
+	i := s.frameIndex * 2
 	xIndex, yIndex := framemap[i], framemap[i+1]
 	return s.Image.SubImage(image.Rect(xIndex, yIndex, xIndex+s.Width, yIndex+s.Height)).(*ebiten.Image)
+}
+
+func (s *SpriteSheet) GetFrameType() string {
+	return s.frameType
 }
 
 func (s *SpriteSheet) GetSpriteFromRowAndCol(row, col int) *ebiten.Image {
@@ -54,7 +62,7 @@ func (s *SpriteSheet) GetSpriteFromRowAndCol(row, col int) *ebiten.Image {
 }
 
 func (s *SpriteSheet) IsValidFrameType(frameType string) bool {
-	for _, ft := range s.FrameTypes {
+	for _, ft := range s.frameTypes {
 		if ft == frameType {
 			return true
 		}
@@ -62,10 +70,30 @@ func (s *SpriteSheet) IsValidFrameType(frameType string) bool {
 	return false
 }
 
+func (s *SpriteSheet) SetFrameMap(m map[string][]int) *SpriteSheet {
+	s.frameTypes = make([]string, 0, len(m))
+	for key := range m {
+		s.frameTypes = append(s.frameTypes, key)
+	}
+	s.frameMap = m
+	s.frameType = s.frameTypes[0] // by default set to the first entry.
+	return s
+}
+
+func (s *SpriteSheet) SetFrameSpeed(speed int) *SpriteSheet {
+	s.frameSpeed = speed
+	return s
+}
+
+func (s *SpriteSheet) SetFrameType(t string) *SpriteSheet {
+	s.frameType = t
+	return s
+}
+
 func (s *SpriteSheet) UpdateFrameType(frameType string) {
-	if frameType != s.FrameType {
-		s.FrameType = frameType
-		s.FrameIndex = 0
-		s.FrameCounter = 0
+	if frameType != s.frameType {
+		s.frameType = frameType
+		s.frameIndex = 0
+		s.frameCounter = 0
 	}
 }
